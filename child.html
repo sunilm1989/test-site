@@ -1,0 +1,30 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <title>Child Page</title>
+    <style>
+      body { font-family: sans-serif; }
+      button { padding: 10px 14px; }
+    </style>
+  </head>
+  <body>
+    <h1>Child Page</h1>
+    <button id="sendBtn">Send event to parent</button>
+
+    <script>
+      document.getElementById("sendBtn").addEventListener("click", () => {
+        window.parent.postMessage(
+          {
+            type: "MY_CUSTOM_EVENT",
+            payload: {
+              message: "Hello from the iframe",
+              time: new Date().toISOString()
+            }
+          },
+          "*"
+        );
+      });
+    </script>
+  </body>
+</html>
