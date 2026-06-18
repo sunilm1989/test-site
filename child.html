@@ -193,9 +193,9 @@
             <p class="event-meta">Unsaved changes. Warn user; do not advance.</p>
           </div>
           <div class="event-controls">
-            <label class="flag-control" for="pendingDataFlag">
-              <input id="pendingDataFlag" type="checkbox" checked />
-              Slect to set as TRUE
+            <label class="flag-control" for="pendingData">
+              <input id="pendingData" type="checkbox" checked />
+              Select this to set Pending data as TRUE.
             </label>
             <button type="button" data-action="PENDING_DATA">Trigger Event</button>
           </div>
@@ -246,18 +246,18 @@
       const EVENT_NAME = "CARDIOLOGY_VIEWER_EVENT";
       const eventLog = document.getElementById("eventLog");
       const studyIdInput = document.getElementById("studyId");
-      const pendingDataFlagInput = document.getElementById("pendingDataFlag");
+      const pendingDataInput = document.getElementById("pendingData");
 
       function getStudyId() {
         return studyIdInput.value.trim();
       }
 
-      function createEventDetail(action, studyId, dataFlag) {
+      function createEventDetail(action, studyId, data) {
         return {
           action,
           context: {
             studyId,
-            dataFlag
+            data
           }
         };
       }
@@ -275,9 +275,8 @@
 
         studyIdInput.setCustomValidity("");
 
-        const dataFlag =
-          action === "PENDING_DATA" ? pendingDataFlagInput.checked : false;
-        const detail = createEventDetail(action, studyId, dataFlag);
+        const data = action === "PENDING_DATA" ? pendingDataInput.checked : "";
+        const detail = createEventDetail(action, studyId, data);
         const customEvent = new CustomEvent(EVENT_NAME, { detail });
         const postMessagePayload = {
           type: EVENT_NAME,
