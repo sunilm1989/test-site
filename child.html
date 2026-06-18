@@ -10,10 +10,24 @@
   </head>
   <body>
     <h1>Child Page</h1>
-    <button id="sendBtn">Send event to parent</button>
+    <button id="pendingBtn">Pending Data</button>
+    <button id="nxtBtn">Next Study</button>
+
 
     <script>
-      document.getElementById("sendBtn").addEventListener("click", () => {
+      document.getElementById("pendingBtn").addEventListener("click", () => {
+        window.parent.postMessage(
+          {
+            type: "CARDIOLOGY_VIEWER_EVENT",
+            payload: {
+              message: "Hello from the iframe",
+              time: new Date().toISOString()
+            }
+          },
+          "*"
+        );
+      });
+      document.getElementById("nxtBtn").addEventListener("click", () => {
         window.parent.postMessage(
           {
             type: "CARDIOLOGY_VIEWER_EVENT",
