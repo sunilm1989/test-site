@@ -50,7 +50,7 @@
         font-weight: 700;
       }
 
-      input {
+      input[type="text"] {
         min-height: 40px;
         padding: 8px 10px;
         border: 1px solid var(--border);
@@ -58,7 +58,7 @@
         font: inherit;
       }
 
-      input:invalid {
+      input[type="text"]:invalid {
         border-color: #b42318;
       }
 
@@ -108,6 +108,29 @@
         background: #09586a;
       }
 
+      .event-controls {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+      }
+
+      .flag-control {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        min-height: 42px;
+        color: var(--text-muted);
+        font-size: 14px;
+        font-weight: 700;
+        white-space: nowrap;
+      }
+
+      .flag-control input {
+        width: 18px;
+        height: 18px;
+        margin: 0;
+      }
+
       .log {
         margin-top: 24px;
         padding: 14px;
@@ -129,6 +152,15 @@
 
         button {
           width: 100%;
+        }
+
+        .event-controls {
+          align-items: stretch;
+          flex-direction: column;
+        }
+
+        .flag-control {
+          justify-content: flex-start;
         }
       }
     </style>
@@ -160,7 +192,13 @@
             <p class="event-title">PENDING_DATA</p>
             <p class="event-meta">Unsaved changes. Warn user; do not advance.</p>
           </div>
-          <button type="button" data-action="PENDING_DATA">Trigger Event</button>
+          <div class="event-controls">
+            <label class="flag-control" for="pendingDataFlag">
+              <input id="pendingDataFlag" type="checkbox" checked />
+              Data flag
+            </label>
+            <button type="button" data-action="PENDING_DATA">Trigger Event</button>
+          </div>
         </article>
 
         <article class="event-row">
@@ -208,16 +246,18 @@
       const EVENT_NAME = "CARDIOLOGY_VIEWER_EVENT";
       const eventLog = document.getElementById("eventLog");
       const studyIdInput = document.getElementById("studyId");
+      const pendingDataFlagInput = document.getElementById("pendingDataFlag");
 
       function getStudyId() {
         return studyIdInput.value.trim();
       }
 
-      function createEventDetail(action, studyId) {
+      function createEventDetail(action, studyId, dataFlag) {
         return {
           action,
           context: {
-            studyId
+            studyId,
+            dataFlag
           }
         };
       }
@@ -235,7 +275,9 @@
 
         studyIdInput.setCustomValidity("");
 
-        const detail = createEventDetail(action, studyId);
+        const dataFlag =
+          action === "PENDING_DATA" ? pendingDataFlagInput.checked : false;
+        const detail = createEventDetail(action, studyId, dataFlag);
         const customEvent = new CustomEvent(EVENT_NAME, { detail });
         const postMessagePayload = {
           type: EVENT_NAME,
