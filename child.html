@@ -16,7 +16,7 @@
       document.getElementById("sendBtn").addEventListener("click", () => {
         window.parent.postMessage(
           {
-            type: "MY_CUSTOM_EVENT",
+            type: "CARDIOLOGY_VIEWER_EVENT",
             payload: {
               message: "Hello from the iframe",
               time: new Date().toISOString()
