@@ -4,40 +4,271 @@
     <meta charset="utf-8" />
     <title>Child Page</title>
     <style>
-      body { font-family: sans-serif; }
-      button { padding: 10px 14px; }
+      :root {
+        color-scheme: light;
+        --border: #d6d9de;
+        --surface: #f7f8fa;
+        --text-muted: #5f6670;
+        --accent: #0b6f85;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        color: #171a1f;
+        font-family: Arial, Helvetica, sans-serif;
+        background: #fff;
+      }
+
+      main {
+        width: min(960px, calc(100% - 32px));
+        margin: 32px auto;
+      }
+
+      h1 {
+        margin: 0 0 8px;
+        font-size: 28px;
+        line-height: 1.2;
+      }
+
+      .description {
+        margin: 0 0 24px;
+        color: var(--text-muted);
+      }
+
+      .field {
+        display: grid;
+        gap: 6px;
+        max-width: 360px;
+        margin-bottom: 24px;
+      }
+
+      label {
+        font-weight: 700;
+      }
+
+      input {
+        min-height: 40px;
+        padding: 8px 10px;
+        border: 1px solid var(--border);
+        border-radius: 6px;
+        font: inherit;
+      }
+
+      input:invalid {
+        border-color: #b42318;
+      }
+
+      .event-list {
+        display: grid;
+        gap: 12px;
+      }
+
+      .event-row {
+        display: grid;
+        grid-template-columns: 1fr auto;
+        gap: 16px;
+        align-items: center;
+        padding: 14px;
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        background: var(--surface);
+      }
+
+      .event-title {
+        margin: 0 0 4px;
+        font-size: 16px;
+        font-weight: 700;
+      }
+
+      .event-meta {
+        margin: 0;
+        color: var(--text-muted);
+        font-size: 14px;
+        line-height: 1.4;
+      }
+
+      button {
+        min-width: 140px;
+        min-height: 42px;
+        padding: 10px 14px;
+        border: 0;
+        border-radius: 6px;
+        color: #fff;
+        background: var(--accent);
+        font: inherit;
+        font-weight: 700;
+        cursor: pointer;
+      }
+
+      button:hover {
+        background: #09586a;
+      }
+
+      .log {
+        margin-top: 24px;
+        padding: 14px;
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        background: #101418;
+        color: #e8edf2;
+        font-family: Menlo, Consolas, monospace;
+        font-size: 13px;
+        line-height: 1.5;
+        overflow: auto;
+        white-space: pre-wrap;
+      }
+
+      @media (max-width: 640px) {
+        .event-row {
+          grid-template-columns: 1fr;
+        }
+
+        button {
+          width: 100%;
+        }
+      }
     </style>
   </head>
   <body>
-    <h1>Child Page</h1>
-    <button id="pendingBtn">Pending Data</button>
-    <button id="nxtBtn">Next Study</button>
+    <main>
+      <h1>Cardiology Viewer Events</h1>
+      <p class="description">
+        Trigger cardiology viewer events from the child page.
+      </p>
 
+      <div class="field">
+        <label for="studyId">Study ID</label>
+        <input
+          id="studyId"
+          type="text"
+          placeholder="Enter study ID"
+          required
+          aria-describedby="studyIdError"
+        />
+        <span id="studyIdError" class="description">
+          Required before triggering any event.
+        </span>
+      </div>
+
+      <section class="event-list" aria-label="Cardiology viewer event triggers">
+        <article class="event-row">
+          <div>
+            <p class="event-title">PENDING_DATA</p>
+            <p class="event-meta">Unsaved changes. Warn user; do not advance.</p>
+          </div>
+          <button type="button" data-action="PENDING_DATA">Trigger Event</button>
+        </article>
+
+        <article class="event-row">
+          <div>
+            <p class="event-title">STUDY_COMPLETED</p>
+            <p class="event-meta">
+              Save / Confirm. Persist final report, advance to next.
+            </p>
+          </div>
+          <button type="button" data-action="STUDY_COMPLETED">Trigger Event</button>
+        </article>
+
+        <article class="event-row">
+          <div>
+            <p class="event-title">STUDY_SKIPPED</p>
+            <p class="event-meta">Skipped from batch. Mark skipped, advance.</p>
+          </div>
+          <button type="button" data-action="STUDY_SKIPPED">Trigger Event</button>
+        </article>
+
+        <article class="event-row">
+          <div>
+            <p class="event-title">VIEWER_CLOSE</p>
+            <p class="event-meta">Exit batch. End session, retain state.</p>
+          </div>
+          <button type="button" data-action="VIEWER_CLOSE">Trigger Event</button>
+        </article>
+
+        <article class="event-row">
+          <div>
+            <p class="event-title">END_OF_BATCH</p>
+            <p class="event-meta">
+              Last study of the batch is completed. Re-qualify the procedures
+              for the batch.
+            </p>
+          </div>
+          <button type="button" data-action="END_OF_BATCH">Trigger Event</button>
+        </article>
+      </section>
+
+      <pre class="log" id="eventLog" aria-live="polite">No event sent yet.</pre>
+    </main>
 
     <script>
-      document.getElementById("pendingBtn").addEventListener("click", () => {
-        window.parent.postMessage(
+      const EVENT_NAME = "CARDIOLOGY_VIEWER_EVENT";
+      const eventLog = document.getElementById("eventLog");
+      const studyIdInput = document.getElementById("studyId");
+
+      function getStudyId() {
+        return studyIdInput.value.trim();
+      }
+
+      function createEventDetail(action, studyId) {
+        return {
+          action,
+          context: {
+            studyId
+          }
+        };
+      }
+
+      function sendCardiologyViewerEvent(action) {
+        const studyId = getStudyId();
+
+        if (!studyId) {
+          studyIdInput.setCustomValidity("Study ID is required.");
+          studyIdInput.reportValidity();
+          studyIdInput.focus();
+          eventLog.textContent = "Study ID is required. Event was not sent.";
+          return;
+        }
+
+        studyIdInput.setCustomValidity("");
+
+        const detail = createEventDetail(action, studyId);
+        const customEvent = new CustomEvent(EVENT_NAME, { detail });
+        const postMessagePayload = {
+          type: EVENT_NAME,
+          detail
+        };
+
+        window.dispatchEvent(customEvent);
+        window.parent.postMessage(postMessagePayload, "*");
+
+        console.log(EVENT_NAME, detail);
+        eventLog.textContent = JSON.stringify(
           {
-            type: "CARDIOLOGY_VIEWER_EVENT",
-            payload: {
-              message: "Hello from the iframe",
-              time: new Date().toISOString()
-            }
+            customEvent: {
+              name: EVENT_NAME,
+              detail
+            },
+            postMessage: postMessagePayload
           },
-          "*"
+          null,
+          2
         );
+      }
+
+      document.querySelectorAll("[data-action]").forEach((button) => {
+        button.addEventListener("click", () => {
+          sendCardiologyViewerEvent(button.dataset.action);
+        });
       });
-      document.getElementById("nxtBtn").addEventListener("click", () => {
-        window.parent.postMessage(
-          {
-            type: "CARDIOLOGY_VIEWER_EVENT",
-            payload: {
-              message: "Hello from the iframe",
-              time: new Date().toISOString()
-            }
-          },
-          "*"
-        );
+
+      studyIdInput.addEventListener("input", () => {
+        if (getStudyId()) {
+          studyIdInput.setCustomValidity("");
+        }
       });
     </script>
   </body>
